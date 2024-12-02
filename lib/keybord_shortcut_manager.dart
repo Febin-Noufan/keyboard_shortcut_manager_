@@ -57,33 +57,29 @@ class _KeyboardShortcutListenerState extends State<KeyboardShortcutListener> {
   /// This method does two primary things:
   /// 1. Toggles shortcut visibility when the left shift key is pressed
   /// 2. Triggers focus and submit actions for configured shortcuts
+  // ignore: deprecated_member_use
   void handleKeyPress(RawKeyEvent event) {
     // Check for key down events to prevent multiple triggers
+    // ignore: deprecated_member_use
     if (event is RawKeyDownEvent) {
       // Toggle shortcut visibility when left shift is pressed
+      // ignore: deprecated_member_use
       if (event.isKeyPressed(LogicalKeyboardKey.shiftLeft)) {
         widget.shortcutKeysVisible.value = !widget.shortcutKeysVisible.value;
       }
 
       // Process shortcuts only when shortcut keys are visible
       if (widget.shortcutKeysVisible.value) {
-        // Check if a modifier key (e.g., Control) is held
-        bool isCtrlPressed = event.isControlPressed;
-
-        // Get the key label of the pressed key
         String keyLabel = event.logicalKey.keyLabel.toLowerCase();
-
-        // Create a combined key identifier (e.g., "ctrl+n")
-        String combinedKey = isCtrlPressed ? 'ctrl+$keyLabel' : keyLabel;
-
-        // Check if the combined key matches any configured shortcut
-        if (shortcutMap.containsKey(combinedKey)) {
+        
+        // Check if the pressed key matches any configured shortcut
+        if (shortcutMap.containsKey(keyLabel)) {
           // Trigger focus action
-          shortcutMap[combinedKey]?.onFocus();
+          shortcutMap[keyLabel]?.onFocus();
 
           // Conditionally trigger submit action based on onPress configuration
-          if (shortcutMap[combinedKey]!.onPress) {
-            shortcutMap[combinedKey]?.onSubmit();
+          if (shortcutMap[keyLabel]!.onPress) {
+            shortcutMap[keyLabel]?.onSubmit();
           }
         }
       }
