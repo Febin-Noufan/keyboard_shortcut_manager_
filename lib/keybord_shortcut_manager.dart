@@ -1,4 +1,9 @@
-// ignore: unnecessary_library_name
+// ignore_for_file: deprecated_member_use
+
+/// A Flutter library for advanced keyboard shortcut interactions.
+///
+/// Provides a [KeyboardShortcutListener] widget that enables complex
+/// keyboard shortcut functionality with dynamic visibility and configurable actions.
 library keyboard_shortcut_listener;
 
 import 'package:flutter/material.dart';
@@ -6,18 +11,24 @@ import 'package:flutter/services.dart';
 
 /// A widget that enables keyboard shortcut functionality with configurable actions.
 ///
-/// This widget wraps child widgets and provides a mechanism to listen to keyboard events,
-/// trigger focus and submit actions based on specific key presses, and toggle shortcut visibility.
+/// This widget wraps child widgets and provides a mechanism to:
+/// - Listen to keyboard events
+/// - Trigger focus and submit actions based on specific key presses
+/// - Toggle shortcut visibility dynamically
 class KeyboardShortcutListener extends StatefulWidget {
   /// The child widget to be wrapped with keyboard shortcut functionality.
   final Widget child;
 
   /// A list of [ShortcutFocus] configurations defining keyboard shortcuts.
+  ///
+  /// Each [ShortcutFocus] represents a specific keyboard shortcut with
+  /// associated focus and optional submit actions.
   final List<ShortcutFocus> shortcuts;
 
   /// A [ValueNotifier] to control and observe the visibility of shortcut keys.
   ///
   /// When set to true, keyboard shortcuts are active and can be triggered.
+  /// Typically used to show/hide shortcut key labels in the UI.
   final ValueNotifier<bool> shortcutKeysVisible;
 
   /// Creates a [KeyboardShortcutListener] widget.
@@ -39,9 +50,20 @@ class KeyboardShortcutListener extends StatefulWidget {
 }
 
 /// The state class for [KeyboardShortcutListener] that manages keyboard event handling.
+///
+/// Handles the core logic of capturing keyboard events, managing Alt key state,
+/// and triggering appropriate actions for configured shortcuts.
 class _KeyboardShortcutListenerState extends State<KeyboardShortcutListener> {
   /// A map to efficiently lookup shortcut configurations by their key.
+  ///
+  /// Provides O(1) access to shortcut configurations, improving performance
+  /// over linear searching through the original list.
   late Map<String, ShortcutFocus> shortcutMap;
+
+  /// Tracks the current state of the Alt key.
+  ///
+  /// Used to determine when to show/hide shortcut keys and trigger Alt+Key combinations.
+  bool isAltPressed = false;
 
   @override
   void initState() {
@@ -54,34 +76,42 @@ class _KeyboardShortcutListenerState extends State<KeyboardShortcutListener> {
 
   /// Handles keyboard events and triggers appropriate actions.
   ///
-  /// This method does two primary things:
-  /// 1. Toggles shortcut visibility when the left shift key is pressed
-  /// 2. Triggers focus and submit actions for configured shortcuts
-  // ignore: deprecated_member_use
+  /// This method manages two primary interactions:
+  /// 1. Toggles shortcut visibility when the Alt key is pressed
+  /// 2. Triggers focus and submit actions for configured Alt+Key shortcuts
+  ///
+  /// The method differentiates between key down and key up events to
+  /// provide a responsive and intuitive shortcut experience.
   void handleKeyPress(RawKeyEvent event) {
-    // Check for key down events to prevent multiple triggers
-    // ignore: deprecated_member_use
     if (event is RawKeyDownEvent) {
-      // Toggle shortcut visibility when left shift is pressed
-      // ignore: deprecated_member_use
-      if (event.isKeyPressed(LogicalKeyboardKey.shiftLeft)) {
-        widget.shortcutKeysVisible.value = !widget.shortcutKeysVisible.value;
-      }
-
-      // Process shortcuts only when shortcut keys are visible
-      if (widget.shortcutKeysVisible.value) {
+      // Check for Alt key press to show shortcut keys
+      if (event.logicalKey == LogicalKeyboardKey.altLeft) {
+        if (!isAltPressed) {
+          setState(() {
+            isAltPressed = true;
+          });
+          widget.shortcutKeysVisible.value = true; // Show labels
+        }
+      } else if (isAltPressed) {
+        // Handle Alt + Key combination
         String keyLabel = event.logicalKey.keyLabel.toLowerCase();
-        
-        // Check if the pressed key matches any configured shortcut
         if (shortcutMap.containsKey(keyLabel)) {
           // Trigger focus action
           shortcutMap[keyLabel]?.onFocus();
 
-          // Conditionally trigger submit action based on onPress configuration
+          // Conditionally trigger submit action based on configuration
           if (shortcutMap[keyLabel]!.onPress) {
             shortcutMap[keyLabel]?.onSubmit();
           }
         }
+      }
+    } else if (event is RawKeyUpEvent) {
+      // Check for Alt key release to hide shortcut keys
+      if (event.logicalKey == LogicalKeyboardKey.altLeft) {
+        setState(() {
+          isAltPressed = false;
+        });
+        widget.shortcutKeysVisible.value = false; // Hide labels
       }
     }
   }
@@ -89,7 +119,6 @@ class _KeyboardShortcutListenerState extends State<KeyboardShortcutListener> {
   @override
   Widget build(BuildContext context) {
     // Wrap the child with RawKeyboardListener to capture keyboard events
-    // ignore: deprecated_member_use
     return RawKeyboardListener(
       focusNode: FocusNode(),
       onKey: handleKeyPress,
@@ -101,24 +130,33 @@ class _KeyboardShortcutListenerState extends State<KeyboardShortcutListener> {
 /// Represents a keyboard shortcut configuration with associated actions.
 ///
 /// This class allows defining complex keyboard interactions for form fields
-/// or other interactive widgets.
+/// or other interactive widgets, providing granular control over focus and
+/// submission behaviors.
 class ShortcutFocus {
   /// The keyboard key representing the shortcut (lowercase).
+  ///
+  /// Used to match against pressed keys when Alt is held down.
   final String key;
 
   /// The [FocusNode] associated with the target widget or field.
+  ///
+  /// Provides programmatic control over widget focus.
   final FocusNode focusNode;
 
   /// A function to be called when the shortcut key is pressed to focus the widget.
+  ///
+  /// Typically calls [FocusNode.requestFocus()] to move cursor/focus to the widget.
   final Function onFocus;
 
   /// A function to be called when the shortcut key triggers a submission.
+  ///
+  /// Can be used to perform validation, save data, or trigger form submission.
   final Function onSubmit;
 
   /// Determines whether the [onSubmit] function should be called.
   ///
   /// If true, [onSubmit] is triggered along with [onFocus].
-  /// If false, only [onFocus] is triggered.
+  /// If false, only [onFocus] is triggered, allowing for more controlled interactions.
   final bool onPress;
 
   /// Creates a [ShortcutFocus] configuration.

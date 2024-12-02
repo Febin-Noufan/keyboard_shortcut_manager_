@@ -1,8 +1,9 @@
-# pubspec.yaml
 name: keyboard_shortcut_listener
-description: A Flutter package that enables dynamic keyboard shortcut functionality with configurable actions and visibility control.
+description: A Flutter package that enables advanced keyboard shortcut functionality with configurable actions and dynamic shortcut key visibility.
 version: 0.1.0
-homepage: https://github.com/yourusername/keyboard_shortcut_listener
+
+repository: https://github.com/yourusername/keyboard_shortcut_listener
+
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -18,4 +19,4 @@ dev_dependencies:
   flutter_lints: ^3.0.0
 
 flutter:
-  # No specific flutter configuration needed
+  # Add any Flutter-specific configuration if needed
